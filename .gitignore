@@ -1,0 +1,7 @@
+# Ignore Python compiled files
+*.pyc
+__pycache__/
+
+# Ignore everything in ml_model/data and ml_model/raw_data
+ml_model/data/*
+ml_model/raw_data/*
