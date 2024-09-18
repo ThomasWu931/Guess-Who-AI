@@ -7,3 +7,4 @@ ml_model/data/*
 ml_model/raw_data/*
 
 venv/*
+.vercel
