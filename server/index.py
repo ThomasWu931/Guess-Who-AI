@@ -13,6 +13,10 @@ def get_incomes():
     full_paths = [os.path.join(directory, f) for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))]
     return model.predict(full_paths).tolist()
 
+@app.router('/')
+def hello_world():
+    return "hello-world"
+
 # @app.route('/incomes', methods=['POST'])
 # def add_income():
 #     breakpoint()
