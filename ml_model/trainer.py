@@ -53,7 +53,6 @@ class Trainer:
             mode='max',                # Save when the monitored metric (accuracy) is at its maximum
             verbose=1                  # Print a message when saving the model
         )
-        breakpoint()
         self.model.fit(
             x=train_generator, 
             epochs=3,
