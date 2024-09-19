@@ -15,7 +15,7 @@ from tensorflow.keras.preprocessing import image
 
 
 class MLModel:
-    def __init__(self, img_h, img_w, weights_dir, feature, load_weights=False):
+    def __init__(self, img_h, img_w, model_path, load_weights=False):
         self.img_h = img_h
         self.img_w = img_w
         self.weights_dir = weights_dir

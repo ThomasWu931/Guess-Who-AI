@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request
-from ..ml_model.model import *
+# from ..ml_model.model import *
 app = Flask(__name__)
 
 incomes = [
@@ -21,3 +21,5 @@ def hello_world():
 #     breakpoint()
 #     incomes.append(request.get_json())
 #     return '', 204
+
+app.run()
