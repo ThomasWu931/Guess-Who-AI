@@ -5,6 +5,9 @@ __pycache__/
 # Ignore everything in ml_model/data and ml_model/raw_data
 ml_model/data/*
 ml_model/raw_data/*
+!ml_model/data/Test/
+!ml_model/data/Test/**
 
 venv/*
 .vercel
+C:\Users\ThomasWu\OneDrive - Spire Global\Desktop\GWB\ml_model\data\Test\Screenshot 2024-09-11 153242.png
