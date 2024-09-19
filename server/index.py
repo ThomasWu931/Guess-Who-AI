@@ -2,7 +2,7 @@ from flask import Flask, jsonify, request
 from ml_model.model import *
 
 app = Flask(__name__)
-W
+
 # model = MLModel(img_h=218,img_w=178,weights_dir="./ml_model/weights",feature="Eyeglasses",load_weights=True)
 # model.model.save("Eyeglasses.keras")
 model = MLModel(img_h=218,img_w=178, model_path="ml_model/models/Eyeglasses.keras")
