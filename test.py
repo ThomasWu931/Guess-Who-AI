@@ -17,18 +17,18 @@ print(f"Input details: {input_details}")
 input_shape = input_details[0]['shape']
 print(f"Expected input shape: {input_shape}")
 
-# Example input (random data) - ensure this matches the model's expected input
-# Replace this with actual image input
-input_data = np.random.random_sample(input_shape).astype(np.float32)  # Example input
-# If the model expects normalized values (0 to 1), you may need to normalize your data here
+# # Example input (random data) - ensure this matches the model's expected input
+# # Replace this with actual image input
+# input_data = np.random.random_sample(input_shape).astype(np.float32)  # Example input
+# # If the model expects normalized values (0 to 1), you may need to normalize your data here
 
-# Set the input tensor
-interpreter.set_tensor(input_details[0]['index'], input_data)
+# # Set the input tensor
+# interpreter.set_tensor(input_details[0]['index'], input_data)
 
-# Run inference
-interpreter.invoke()
+# # Run inference
+# interpreter.invoke()
 
-# Get the output tensor
-output_data = interpreter.get_tensor(output_details[0]['index'])
-print(f"Inference output shape: {output_data.shape}")
-print("Inference output:", output_data)
+# # Get the output tensor
+# output_data = interpreter.get_tensor(output_details[0]['index'])
+# print(f"Inference output shape: {output_data.shape}")
+# print("Inference output:", output_data)
