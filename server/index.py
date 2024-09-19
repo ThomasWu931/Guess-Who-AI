@@ -22,4 +22,4 @@ def hello_world():
 #     incomes.append(request.get_json())
 #     return '', 204
 
-app.run()
+app.run(host='0.0.0.0', port=5000)
