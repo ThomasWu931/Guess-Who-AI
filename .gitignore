@@ -7,6 +7,7 @@ ml_model/data/*
 ml_model/raw_data/*
 !ml_model/data/Test/
 !ml_model/data/Test/**
+ml_model/models*
 
 venv/*
 .vercel
