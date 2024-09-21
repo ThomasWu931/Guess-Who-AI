@@ -56,3 +56,5 @@ Werkzeug==3.0.4
 wheel==0.44.0
 wrapt==1.16.0
 gunicorn==19.7.1
+python-dotenv==1.0.1
+pymongo==4.9.1
