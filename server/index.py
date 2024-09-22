@@ -1,6 +1,4 @@
 from flask import Flask, jsonify, request
-import tensorflow as tf
-from tensorflow.keras.preprocessing import image
 from dotenv import load_dotenv
 import pymongo
 import os
@@ -24,11 +22,11 @@ def get_images():
     # Sample 25 images from the db
     sample_size = 1
     sample = list(collection.aggregate([{"$sample": {"size": sample_size}}]))
-    return sample
+    return [s["Eyeglasses"] for s in sample]
 
 @app.route('/')
 def hello_world():
     return "hello-world"
 
 # Run app
-app.run(host='0.0.0.0', port=5000)
+app.run(host='0.0.0.0', port=5678 )
