@@ -39,9 +39,5 @@ def get_question():
     image_ids = data["image_ids"]
     return s.get_best_question_adapter(image_ids, 3)
 
-@app.route('/')
-def hello_world():
-    return "hello-world"
-
 # Run app
 app.run(host='0.0.0.0', port=5678 )
