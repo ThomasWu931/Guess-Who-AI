@@ -4,6 +4,8 @@ import pymongo
 import os
 from PIL import Image
 from io import BytesIO
+import bson
+from ..solver.mongo_solver_adapter import *
 
 # Get collection
 load_dotenv()
@@ -21,8 +23,21 @@ app = Flask(__name__)
 def get_images():
     # Sample 25 images from the db
     sample_size = 1
-    sample = list(collection.aggregate([{"$sample": {"size": sample_size}}]))
-    return [s["Eyeglasses"] for s in sample]
+    sample_images = list(collection.aggregate([{"$sample": {"size": sample_size}}]))
+    sample_images = [
+        {
+            k: str(v) if k == "_id" else v for k,v in image
+        }
+        for image in sample_images
+    ]
+    return bson.BSON.encode(sample_images)
+
+@app.route("/get_question", methods=["POST"])
+def get_question():
+    s = MongoSolver(collection)
+    data = request.get_json()
+    image_ids = data["image_ids"]
+    return s.get_best_question_adapter(image_ids, 3)
 
 @app.route('/')
 def hello_world():

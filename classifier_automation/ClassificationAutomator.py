@@ -14,7 +14,7 @@ class ClassificationAutomator:
         self.collection = db[self.collection_name]
         self.models: dict[str, Model] = models
 
-    def evaluate_img(self, image: Image.Image) -> dict[str, float]:
+    def evaluate_img(self, image: Image.Image) -> dict[str, dict[str, bool | float]]:
         preds = {}
         for feature, model in self.models.items():
             # Resize image to the correct dimensions
@@ -22,8 +22,11 @@ class ClassificationAutomator:
             image = image.resize((img_w, img_h))
             image_arr = np.expand_dims(np.array(image), axis=0)
             prediction = model.predict(image_arr)
-            prediction = prediction.tolist()[0]
-            preds[feature] = prediction
+            prediction = prediction.tolist()[0][0] # Get the first feature in the first element 
+            feature_info = {}
+            feature_info["v"] = True if prediction >= 0.5 else False
+            feature_info["conf"] = prediction
+            preds[feature] = feature_info
         return preds
 
     def convert_image_to_bytes(self, image: Image.Image):
@@ -35,7 +38,7 @@ class ClassificationAutomator:
     def process_and_upload_img(self, image: Image.Image):
         document = {
             "image": self.convert_image_to_bytes(image),
-            **self.evaluate_img(image)
+            "traits":{**self.evaluate_img(image)}
         }
         self.collection.insert_one(document)
 

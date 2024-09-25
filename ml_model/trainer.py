@@ -15,12 +15,12 @@ from tensorflow.keras.preprocessing import image
 from model import *
 
 class Trainer:
-    def __init__(self, image_folder, feature, model: MLModel) -> None:
+    def __init__(self, image_folder, feature, model_dir) -> None:
         self.image_folder = image_folder
         self.feature = feature
         self.lr = 0.0001
         self.batch_size = 100
-        self.model = model
+        self.model_dir = model_dir
 
     def train_and_save_weights(self):
         print(f"[train_and_save_weights]: Training for feature {self.model.feature}")
@@ -118,8 +118,8 @@ tf.config.threading.set_intra_op_parallelism_threads(4)  # Controls parallel thr
 tf.config.threading.set_inter_op_parallelism_threads(4)  # Controls parallel threads between operations
 
 # ,Bald,Bangs,Black_Hair,Blond_Hair,Brown_Hair,Chubby,Gray_Hair,Male,Mouth_Slightly_Open,Pale_Skin,Smiling,Straight_Hair,Wavy_Hair,Wearing_Earrings,Wearing_Hat,Wearing_Necklace,Wearing_Necktie
-t = Trainer(image_folder="data/Brown_Hair", 
-            feature="Brown_Hair",
+t = Trainer(image_folder="data/Male", 
+            feature="Male",
             weights_dir="weights"    
         )
 t.train_and_save_weights()
