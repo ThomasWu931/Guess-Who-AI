@@ -12,18 +12,36 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.preprocessing import image
-from model import *
 
 class Trainer:
-    def __init__(self, image_folder, feature, model_dir) -> None:
+    def __init__(self, image_folder, feature, model_dir, img_h=218, img_w=178, model_name="VGG16") -> None:
         self.image_folder = image_folder
         self.feature = feature
         self.lr = 0.0001
         self.batch_size = 100
         self.model_dir = model_dir
+        self.img_h = img_h
+        self.img_w = img_w
+        self.model = self.initialize_model(model_name)
 
-    def train_and_save_weights(self):
-        print(f"[train_and_save_weights]: Training for feature {self.model.feature}")
+    def initialize_model(self, model_name):
+        if model_name == "VGG16":
+            base_model = keras.applications.VGG16(weights=None, input_shape=(self.img_h, self.img_w, 3), include_top=False)
+        elif model_name == "ResNet50V2":
+            base_model = keras.applications.ResNet50V2(weights=None, input_shape=(self.img_h, self.img_w, 3), include_top=False)
+        else:
+            raise Exception(f"[initialize_model] ERROR: Invalid model type {model}")
+        add_model = Sequential()
+        add_model.add(Flatten(input_shape=base_model.output_shape[1:]))
+        add_model.add(Dense(1, activation='sigmoid'))
+        model = Model(inputs=base_model.input, outputs=add_model(base_model.output))
+        model.compile(loss='binary_crossentropy', optimizer=Adam(learning_rate=self.lr),
+                        metrics=['accuracy'])
+        model.summary()
+        return model
+
+    def train_and_save_model(self):
+        print(f"[train_and_save_weights]: Training for feature {self.feature}")
 
         # Load the train and validation data
         train_datagen = ImageDataGenerator() # NOTE!?: Might want to include rescale=1.0/255
@@ -31,33 +49,36 @@ class Trainer:
 
         # Flow images from the directory
         train_generator = train_datagen.flow_from_directory(
-            f'{self.image_folder}/{self.model.feature}/Train',
-            target_size=(self.model.img_h, self.model.img_w),   
+            f'{self.image_folder}/Train',
+            target_size=(self.img_h, self.img_w),   
             batch_size=self.batch_size,
             class_mode='binary'       
         )
         val_generator = val_datagen.flow_from_directory(
-            f'{self.image_folder}/{self.model.feature}/Valid',
-            target_size=(self.model.img_h, self.model.img_w),   
+            f'{self.image_folder}/Valid',
+            target_size=(self.img_h, self.img_w),   
             batch_size=self.batch_size,
             class_mode='binary'       
         )
 
         # Train and save
-        filepath = self.model.get_weights_path()
-        os.makedirs(os.path.dirname(filepath), exist_ok=True)
+        model_path = f"{self.model_dir}/{self.feature}.keras"
+        os.makedirs(os.path.dirname(model_path), exist_ok=True)
         checkpoint = ModelCheckpoint(
-            filepath=filepath,  # Filepath where the best model weights will be saved
-            monitor='val_accuracy',    # Monitor the validation accuracy
-            save_best_only=True,       # Save only the model with the best validation accuracy
-            mode='max',                # Save when the monitored metric (accuracy) is at its maximum
-            verbose=1                  # Print a message when saving the model
+            filepath=model_path,  # Filepath where the model will be saved
+            monitor='val_accuracy',  # Monitor the validation accuracy
+            save_best_only=False,    # Save the model at every epoch
+            save_weights_only=False, # Save the entire model, not just the weights
+            mode='max',              # Mode to monitor the accuracy
+            verbose=1                # Print a message when saving the model
         )
+
+        # Fit the model
         self.model.fit(
             x=train_generator, 
-            epochs=3,
+            epochs=2,
             validation_data=val_generator,
-            callbacks=[checkpoint],
+            callbacks=[checkpoint], 
             steps_per_epoch=80,
             validation_steps=5,
         )
@@ -118,10 +139,10 @@ tf.config.threading.set_intra_op_parallelism_threads(4)  # Controls parallel thr
 tf.config.threading.set_inter_op_parallelism_threads(4)  # Controls parallel threads between operations
 
 # ,Bald,Bangs,Black_Hair,Blond_Hair,Brown_Hair,Chubby,Gray_Hair,Male,Mouth_Slightly_Open,Pale_Skin,Smiling,Straight_Hair,Wavy_Hair,Wearing_Earrings,Wearing_Hat,Wearing_Necklace,Wearing_Necktie
-t = Trainer(image_folder="data/Male", 
-            feature="Male",
-            weights_dir="weights"    
+t = Trainer(image_folder="./ml_model/data/Blond_Hair", 
+            feature="Blond_Hair",
+            model_dir="./ml_model/models"    
         )
-t.train_and_save_weights()
+t.train_and_save_model()
 
 
