@@ -6,6 +6,7 @@ from PIL import Image
 from io import BytesIO
 import bson
 from ..solver.mongo_solver_adapter import *
+from flask_cors import CORS
 
 # Get collection
 load_dotenv()
@@ -18,6 +19,7 @@ db = client[db_name]
 collection = db[collection_name]
 
 app = Flask(__name__)
+CORS(app)  # Allow all origins (for development purposes) (#TODO: EDIT THIS WHEN DEPLOYING TO BE MORE RESTRICTIVE)
 
 @app.route('/images', methods=['GET'])
 def get_images():
