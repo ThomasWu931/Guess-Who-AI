@@ -15,20 +15,20 @@ def main():
 
     # Get models
     models = {
-        "Eyeglasses": load_model("ml_model\models\Eyeglasses.keras"), # Note that this import is relative to the working directory which initialized python code
-        "Male": load_model("ml_model\models\Male.keras"),
-        "Blond_hair": load_model("ml_model\models\Blond_hair.keras")
+        "Eyeglasses": load_model("ml_model/models/Eyeglasses.keras"), # Note that this import is relative to the working directory which initialized python code
+        "Male": load_model("ml_model/models/Male.keras"),
+        "Blond_hair": load_model("ml_model/models/Blond_hair.keras")
     }
 
     # Run
     automator = ClassificationAutomator(mongo_url, db_name, collection_name, models)
-    automator.run(30)
+    automator.run(100)
 
-    data = list(automator.collection.find())            
-    # Loop through the cursor to print each document
-    for document in data:
-        image = Image.open(BytesIO(document["image"]))
-        image.show()
+    # data = list(automator.collection.find())            
+    # # Loop through the cursor to print each document
+    # for document in data:
+    #     image = Image.open(BytesIO(document["image"]))
+    #     image.show()
 
 main()
 

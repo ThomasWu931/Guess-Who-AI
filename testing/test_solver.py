@@ -71,7 +71,7 @@ def test_no_dumb_choice():
             "Image_1",
             {
                 Trait.Eyeglasses: 1,  # Low confidence this individual has eyeglasses
-                Trait.Bald: 0,        # High confidence this individual is bald
+                Trait.Blond_hair: 0,        # High confidence this individual is bald
                 Trait.Male: 0.1        # Medium confidence this individual is male
             }
         ),
@@ -79,7 +79,7 @@ def test_no_dumb_choice():
             "Image_2",
             {
                 Trait.Eyeglasses: 1,  # Low confidence this individual has eyeglasses
-                Trait.Bald: 0,        # High confidence this individual is bald
+                Trait.Blond_hair: 0.5,        # High confidence this individual is bald
                 Trait.Male: 0.3        # Medium confidence this individual is male
             }
         ),
@@ -87,7 +87,7 @@ def test_no_dumb_choice():
             "Image_3",
             {
                 Trait.Eyeglasses: 1,  # Low confidence this individual has eyeglasses
-                Trait.Bald: 1,        # High confidence this individual is bald
+                Trait.Blond_hair: 1,        # High confidence this individual is bald
                 Trait.Male: 0.5        # Medium confidence this individual is male
             }
         ),
@@ -95,7 +95,7 @@ def test_no_dumb_choice():
             "Image_4",
             {
                 Trait.Eyeglasses: 1,  # Low confidence this individual has eyeglasses
-                Trait.Bald: 0.9,        # High confidence this individual is bald
+                Trait.Blond_hair: 0.9,        # High confidence this individual is bald
                 Trait.Male: 0.7         # Medium confidence this individual is male
             }
         ),
@@ -103,14 +103,22 @@ def test_no_dumb_choice():
             "Image_5",
             {
                 Trait.Eyeglasses: 1,  # Low confidence this individual has eyeglasses
-                Trait.Bald: 0.8,        # High confidence this individual is bald
+                Trait.Blond_hair: 0.8,        # High confidence this individual is bald
                 Trait.Male: 0.9         # Medium confidence this individual is male
             }
         )
     ]
-    s = Solver(images)
-    q, e = s.solve()
-    print(q, e)
+    s = Solver(images,verbose=True)
+    q = s.get_best_question()
+    assert repr(q) == "Is your individual Male"
 
+    a = Answer.Yes
+    s.process_question_and_answer(q, a)
+
+    q = s.get_best_question()
+    assert repr(q) == "Does your individual have Blond_hair"
+
+    a = Answer.No
+    s.process_question_and_answer(q, a)
 
 test_no_dumb_choice()
