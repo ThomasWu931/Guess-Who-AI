@@ -36,10 +36,12 @@ def get_images():
 
 @app.route("/get_question", methods=["POST"])
 def get_question():
-    s = MongoSolver(collection)
     data = request.get_json()
     image_ids = data["image_ids"]
-    return s.get_best_question_adapter(image_ids, 3)
+    questions = data["questions"]
+    answers = data["answers"]
+    s = MongoSolver(collection, image_ids, questions, answers)
+    return s.get_best_question_adapter(image_ids)
 
 # Run app
 app.run(host='0.0.0.0', port=5678 )

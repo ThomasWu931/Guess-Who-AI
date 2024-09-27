@@ -1,12 +1,13 @@
 from .solver import *
 
 class MongoSolver(Solver):
-    def __init__(self, collection) -> None:
-        super().__init__()
+    def __init__(self, collection, image_ids: list[str], questions: list[TraitQuestion | GuessQuestion], answers: list[Answer]) -> None:
         self.collection = collection
+        images = self._get_images(image_ids)
+        super().__init__(images, questions, answers)
 
-    def get_images(self, image_ids) -> list[Image]:
-        # raw_images = self.collection.find({"_id": {"$in": image_ids}})
+    def _get_images(self) -> list[Image]:
+        # raw_images = self.collection.find({"_id": {"$in": image_ids}}) # TODO: UNCOMMENT LATER
         raw_images = list(self.collection.aggregate([{"$sample": {"size": 20}}]))
         images = []
         for image in raw_images:
@@ -14,7 +15,6 @@ class MongoSolver(Solver):
             images.append(Image(str(image["_id"]), traits))
         return images
 
-    def get_best_question_adapter(self, image_ids: list[str], depth=0) -> str:
-        images = self.get_images(image_ids)
-        question, _ = super().get_best_question(images, depth)
+    def get_best_question_adapter(self, depth=1) -> str:
+        question = super().get_best_question(depth)
         return repr(question)

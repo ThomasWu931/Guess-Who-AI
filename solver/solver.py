@@ -57,13 +57,17 @@ class GuessQuestion:
         return f"Is your person {self.image_name}"
 
 class Solver:
-    def __init__(self, images: list[Image], verbose=False) -> None:
-        self.questions: list[TraitQuestion | GuessQuestion] = []
-        self.answers: list[Answer] = []
+    def __init__(self, images: list[Image], questions: list[TraitQuestion | GuessQuestion] = None, answers: list[Answer] = None, verbose=False) -> None:
+        self.questions: list[TraitQuestion | GuessQuestion] = questions if questions else []
+        self.answers: list[Answer] = answers if answers else []
         self.images: list[Image] = images
         self.verbose = verbose
         self.image_trait_answer_probabilities = self._compute_image_probabilities_from_confidence(self.images)
         self.image_probabilities: dict[str, float] = {image.name: 1/len(self.images) for image in self.images}
+
+        # Do some initial processing using info from questions and answers
+        for q, a in zip(questions, answers):
+            self.process_question_and_answer(q,a)
     
     def print(self, *args, **xargs):
         if self.verbose:
@@ -217,9 +221,10 @@ class Solver:
         if best_expected_entropy > 0.32:
             self.print(f"BEST QUESTION: {best_question} produced expected entropy {best_expected_entropy}")
         else:
-            image_choice = random.choices(self.images, weights=self.image_probabilities, k=1)[0]
-            best_question = GuessQuestion(image_choice)
-        
+            image_choice = random.choices(self.images, weights=[self.image_probabilities[img.name] for img in self.images], k=1)[0]
+            best_question = GuessQuestion(image_choice.name)
+            self.print(f"BEST QUESTION: {best_question}")
+
         return best_question    
 
 
