@@ -4,6 +4,7 @@ import random
 import numpy as np
 from scipy.stats import norm
 from scipy.integrate import quad
+from ..data_models import *
 
 """
 TODO:
@@ -12,53 +13,13 @@ TODO:
 2. Add beyond depth 1 searches
 """
 
-class Trait(Enum):
-    Eyeglasses = "Eyeglasses"
-    # Bald = "Bald"
-    Male = "Male"
-    Blond_hair = "Blond_hair"
-
-class Answer(Enum):
-    """CAREFUL OF CHANGING THIS ORDERING ME USE discretize_confidence_to_probability() WHICH GOING FROM No TO Yes left-to-right """
-    No = 0.1
-    Slight_no = 0.3
-    Neutral = 0.5
-    Slight_yes = 0.7
-    Yes = 0.9
-
-class Image:
-    def __init__(self, name, traits) -> None:
-        self.traits: dict[Trait, float] = traits
-        self.name = name
-    
-    def __repr__(self) -> str:
-        return f"Name: {self.name}, Trait: {self.traits}"
-
-class TraitQuestion:
-    def __init__(self, trait: Trait) -> None:
-        """
-        Note: We assume that each question is in the affirmative (a.k.a it's asking a yes-question) 
-        """
-        self.trait = trait
-    
-    def __repr__(self) -> str:
-        if self.trait in [Trait.Eyeglasses, Trait.Blond_hair]:
-            return f"Does your individual have {self.trait.value}"
-        elif self.trait in [Trait.Male]:
-            return f"Is your individual {self.trait.value}"
-        else:
-            raise Exception(f"[__repr__] Unhandled trait {self.trait}")
-
-class GuessQuestion:
-    def __init__(self, image_name: str) -> None:
-        self.image_name = image_name
-
-    def __repr__(self) -> str:
-        return f"Is your person {self.image_name}"
-
 class Solver:
-    def __init__(self, images: list[Image], questions: list[TraitQuestion | GuessQuestion] = None, answers: list[Answer] = None, verbose=False) -> None:
-        self.questions: list[TraitQuestion | GuessQuestion] = questions if questions else []
+    def __init__(self, images: list[Image], questions: list[Question] = None, answers: list[Answer] = None, verbose=False) -> None:
+        """
+        Notes:
+            - Even though we take in Question[], we ultimately remove the GuessQuestion, using them to eliminate choices
+        """
+        self.questions: list[TraitQuestion] = questions if questions else []
         self.answers: list[Answer] = answers if answers else []
         self.images: list[Image] = images
         self.verbose = verbose
@@ -66,7 +27,7 @@ class Solver:
         self.image_probabilities: dict[str, float] = {image.name: 1/len(self.images) for image in self.images}
 
         # Do some initial processing using info from questions and answers
-        for q, a in zip(questions, answers):
+        for q, a in zip(questions, self.answers):
             self.process_question_and_answer(q,a)
     
     def print(self, *args, **xargs):
@@ -164,22 +125,23 @@ class Solver:
 
         return p_trait_given_image/(p_trait_given_image+sum(p_trait_given_not_image))
 
-    def process_question_and_answer(self, question: TraitQuestion | GuessQuestion, answer: Answer) -> None:
+    def process_question_and_answer(self, question: Question, answer: Answer) -> None:
         """Given a new question and answer, update the conditional probabilities for each image
 
         Args:
             question (Question): q
             answer (Answer): a
         """
-        if type(question) == GuessQuestion:
+        if question.type == QuestionType.Guess:
             # When we have a guess question, we just delete the image from the the images array
             image_name = question.image_name
             self.images = list(filter(lambda x: x.name != image_name, self.images))
             del self.image_trait_answer_probabilities[image_name]
-
-        elif type(question) == TraitQuestion:
+        elif question.type == QuestionType.Trait:
             self.questions.append(question)
             self.answers.append(answer)
+        else:
+            raise Exception(f"[process_question_and_answer] Invalid question type {question.type}")
 
         # Recompute image probabilities
         for image in self.images:
@@ -191,7 +153,7 @@ class Solver:
         if abs(sum(self.image_probabilities.values()) - 1) >= 0.01:
             raise Exception(f"[process_question_and_answer] Leaking woojer sum {sum(self.image_probabilities.values())}. {self.image_probabilities.values()}")
 
-    def get_best_question(self, depth=1) -> GuessQuestion | TraitQuestion:
+    def get_best_question(self, depth=1) -> TraitQuestion | GuessQuestion:
         best_expected_entropy = 0
         best_question = None
         for trait in Trait:

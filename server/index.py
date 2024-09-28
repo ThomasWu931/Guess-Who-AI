@@ -38,10 +38,36 @@ def get_images():
 def get_question():
     data = request.get_json()
     image_ids = data["image_ids"]
-    questions = data["questions"]
-    answers = data["answers"]
+
+    # Process questions
+    questions = []
+    for q in data["questions"]:
+        if q["type"] == QuestionType.Guess:
+            question = GuessQuestion(q["image_name"])
+        elif q["type"] == QuestionType.Trait:
+            question = TraitQuestion(q["trait"])
+        questions.append(question)
+    
+    # Process answers
+    answers = [Answer(a) for a in data["answers"]]
+
+    # Get best question
     s = MongoSolver(collection, image_ids, questions, answers)
-    return s.get_best_question_adapter(image_ids)
+    question = s.get_best_question()
+    if question.type == QuestionType.Guess:
+        return {
+            "type": question.type.value,
+            "question": repr(question),
+            "image_name": question.image_name
+        }
+    elif question.type == QuestionType.Guess:
+        return {
+            "type": question.type.value,
+            "question": repr(question),
+            "trait": question.image_name
+        }
+    else:
+        raise Exception(f"[get_question] Invalid type {question.type}")
 
 # Run app
 app.run(host='0.0.0.0', port=5678 )

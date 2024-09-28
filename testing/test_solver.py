@@ -1,4 +1,5 @@
 from ..solver.solver import *
+from ..data_models import *
 
 def basic_trait_question_test():
     images = [

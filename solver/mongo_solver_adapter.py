@@ -1,7 +1,7 @@
 from .solver import *
 
 class MongoSolver(Solver):
-    def __init__(self, collection, image_ids: list[str], questions: list[TraitQuestion | GuessQuestion], answers: list[Answer]) -> None:
+    def __init__(self, collection, image_ids: list[str], questions: list[Question], answers: list[Answer]) -> None:
         self.collection = collection
         images = self._get_images(image_ids)
         super().__init__(images, questions, answers)
@@ -14,7 +14,3 @@ class MongoSolver(Solver):
             traits = {Trait(k): v["conf"] for k,v in image["traits"].items()}
             images.append(Image(str(image["_id"]), traits))
         return images
-
-    def get_best_question_adapter(self, depth=1) -> str:
-        question = super().get_best_question(depth)
-        return repr(question)
