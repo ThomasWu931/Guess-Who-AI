@@ -189,25 +189,27 @@ class Solver:
 
         if not best_question: raise Exception("[solve] Empty sussy q. Prob a woojwasta responsible.")
 
-        # Consider whether to ask a trait or guess question
-        # Use use the heuristic that if less than 80% of the data is expected to be cleared, then, we'd use a question over a final guess
-        # if best_expected_entropy > 0.32:
-        #     self.print(f"BEST QUESTION: {best_question} produced expected entropy {best_expected_entropy}")
-        # else:
-        #     image_choice = random.choices(self.images, weights=[self.image_probabilities[img.name] for img in self.images], k=1)[0]
-        #     best_question = GuessQuestion(image_choice.name)
-        #     self.print(f"BEST QUESTION: {best_question}")
-
+        """
+            Consider whether to ask a trait or guess question
+            Use use any of the following heuristic to consider a "termination" event:    
+                #1: The expected entropy after asking the question leads to less than a 2 person decrease
+        """
         current_entropy = self._compute_entropy_of_list(self.image_probabilities.values())
+        expected_reduction_amount = 0.5**expected_entropy * len(self.images)
+        current_reduction_amount = 0.5**current_entropy * len(self.images)
+
         self.print(f"Current entropy: {round(current_entropy, 2)}. Future entropy: {round(best_expected_entropy, 2)}")
-        if abs(current_entropy  - best_expected_entropy) < 0.1 or best_expected_entropy < 0.1:
+        if abs(expected_reduction_amount - current_reduction_amount) < 2:
             image_choice = random.choices(self.images, weights=[self.image_probabilities[img.name] for img in self.images], k=1)[0]
             best_question = GuessQuestion(image_choice.name)
             self.print(f"BEST QUESTION: {best_question}")
         else:
             self.print(f"BEST QUESTION: {best_question} produced expected entropy {best_expected_entropy}")
 
-        return best_question    
+        return best_question  
+
+    def _entropy_to_prob(self):
+        # Converts given entropy into a probability for the 
 
 
 

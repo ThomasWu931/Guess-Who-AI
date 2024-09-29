@@ -22,20 +22,21 @@ from tensorflow.keras.models import Model
 import shutil
 
 class FeatureDataPartitioner:
-    def __init__(self, image_folder, label_csv_dir, feature, output_data_folder) -> None:
+    def __init__(self, image_folder, label_csv_dir, feature, output_data_folder, max_split_size=5000 ) -> None:
         self.image_folder = image_folder
         self.label_csv_dir = label_csv_dir
         self.feature = feature
         self.label_df = pd.read_csv(label_csv_dir)
         self.label_df.set_index('image_id', inplace=True)
         self.output_data_folder = output_data_folder
+        self.max_split_size = max_split_size
 
     def get_even_feature_split(self):
         """Look through all images and get the maximum subset which includes a 50/50 split between data with and without the feature"""
         with_feature  = self.label_df[self.label_df[self.feature] == 1]
         without_feature = self.label_df[self.label_df[self.feature] == -1]     
    
-        split_size = min(len(without_feature), len(with_feature))
+        split_size = min(len(without_feature), len(with_feature), self.max_split_size)
         print(f"[get_even_feature_split] Split size is {split_size}")
         with_feature_sample = with_feature.sample(n=split_size)
         without_feature_sample = without_feature.sample(n=split_size)
@@ -61,5 +62,5 @@ class FeatureDataPartitioner:
         self.upload_imgs(without_feature_train, self.image_folder, f"{self.output_data_folder}/Train/no_{self.feature}")
         self.upload_imgs(without_feature_val, self.image_folder, f"{self.output_data_folder}/Valid/no_{self.feature}")
 
-f = FeatureDataPartitioner("./raw_data/img_align_celeba/img_align_celeba", "./raw_data/list_attr_celeba.csv", "Brown_Hair", "data/Brown_Hair")
+f = FeatureDataPartitioner("./raw_data/img_align_celeba/img_align_celeba", "./raw_data/list_attr_celeba.csv", "Black_Hair", "data/Black_Hair")
 f.process_and_upload_data()

@@ -139,9 +139,9 @@ tf.config.threading.set_intra_op_parallelism_threads(4)  # Controls parallel thr
 tf.config.threading.set_inter_op_parallelism_threads(4)  # Controls parallel threads between operations
 
 # ,Bald,Bangs,Black_Hair,Blond_Hair,Brown_Hair,Chubby,Gray_Hair,Male,Mouth_Slightly_Open,Pale_Skin,Smiling,Straight_Hair,Wavy_Hair,Wearing_Earrings,Wearing_Hat,Wearing_Necklace,Wearing_Necktie
-t = Trainer(image_folder="./ml_model/data/Blond_Hair", 
-            feature="Blond_Hair",
-            model_dir="./ml_model/models"    
+t = Trainer(image_folder="./data/Black_Hair", 
+            feature="Black_Hair",
+            model_dir="./models"    
         )
 t.train_and_save_model()
 
