@@ -106,6 +106,60 @@ def basic_guess_question_test():
     q = s.get_best_question()
     assert repr(q) == "Is your person Image_1"
 
+def basic_guess_question_test_2():
+    random.seed(2)
+    images = [
+        Image(
+            "Image_1",
+            {
+                Trait.Eyeglasses: 0,  # Low confidence this individual has eyeglasses
+                Trait.Blond_hair: 1,        # High confidence this individual is bald
+                Trait.Male: 1        # Medium confidence this individual is male
+            }
+        ),
+        Image(
+            "Image_2",
+            {
+                Trait.Eyeglasses: 0,  # Low confidence this individual has eyeglasses
+                Trait.Blond_hair: 1,        # High confidence this individual is bald
+                Trait.Male: 0        # Medium confidence this individual is male
+            }
+        ),
+        Image(
+            "Image_3",
+            {
+                Trait.Eyeglasses: 0,  # Low confidence this individual has eyeglasses
+                Trait.Blond_hair: 0,        # High confidence this individual is bald
+                Trait.Male: 0        # Medium confidence this individual is male
+            }
+        ),
+        Image(
+            "Image_4",
+            {
+                Trait.Eyeglasses: 0,  # Low confidence this individual has eyeglasses
+                Trait.Blond_hair: 0,        # High confidence this individual is bald
+                Trait.Male: 0         # Medium confidence this individual is male
+            }
+        ),
+        Image(
+            "Image_5",
+            {
+                Trait.Eyeglasses: 0,  # Low confidence this individual has eyeglasses
+                Trait.Blond_hair: 0,        # High confidence this individual is bald
+                Trait.Male: 0         # Medium confidence this individual is male
+            }
+        )
+    ]
+    s = Solver(images,verbose=True)
+    q = s.get_best_question()
+    s.process_question_and_answer(q, Answer.Yes)
+    q = s.get_best_question()
+    s.process_question_and_answer(q, Answer.Yes)
+    q = s.get_best_question()
+    assert repr(q) == "Is your person Image_1"
+    s.process_question_and_answer(q, Answer.No)
+    breakpoint()
 
-basic_trait_question_test()
-basic_guess_question_test()
+# basic_trait_question_test()
+basic_guess_question_test_2()
+

@@ -24,15 +24,15 @@ CORS(app)  # Allow all origins (for development purposes) (#TODO: EDIT THIS WHEN
 @app.route('/images', methods=['GET'])
 def get_images():
     # Sample 25 images from the db
-    sample_size = 1
+    sample_size = 10
     sample_images = list(collection.aggregate([{"$sample": {"size": sample_size}}]))
     sample_images = [
         {
-            k: str(v) if k == "_id" else v for k,v in image
+            k: str(v) if k == "_id" else v for k,v in image.items()
         }
         for image in sample_images
     ]
-    return bson.BSON.encode(sample_images)
+    return bson.BSON.encode({"data": sample_images})
 
 @app.route("/get_question", methods=["POST"])
 def get_question():
@@ -42,17 +42,21 @@ def get_question():
     # Process questions
     questions = []
     for q in data["questions"]:
-        if q["type"] == QuestionType.Guess:
+        if q["type"] == QuestionType.Guess.value:
             question = GuessQuestion(q["image_name"])
-        elif q["type"] == QuestionType.Trait:
-            question = TraitQuestion(q["trait"])
+        elif q["type"] == QuestionType.Trait.value:
+            question = TraitQuestion(Trait(q["trait"]))
         questions.append(question)
     
     # Process answers
     answers = [Answer(a) for a in data["answers"]]
 
     # Get best question
-    s = MongoSolver(collection, image_ids, questions, answers)
+    s = MongoSolver(collection, image_ids, verbose=True)
+    
+    for q,a in zip(questions, answers):
+        s.process_question_and_answer(q,a)
+
     question = s.get_best_question()
     if question.type == QuestionType.Guess:
         return {
@@ -60,11 +64,11 @@ def get_question():
             "question": repr(question),
             "image_name": question.image_name
         }
-    elif question.type == QuestionType.Guess:
+    elif question.type == QuestionType.Trait:
         return {
             "type": question.type.value,
             "question": repr(question),
-            "trait": question.image_name
+            "trait": question.trait.value
         }
     else:
         raise Exception(f"[get_question] Invalid type {question.type}")

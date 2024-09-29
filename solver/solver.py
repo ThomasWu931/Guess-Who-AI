@@ -14,22 +14,18 @@ TODO:
 """
 
 class Solver:
-    def __init__(self, images: list[Image], questions: list[Question] = None, answers: list[Answer] = None, verbose=False) -> None:
+    def __init__(self, images: list[Image], verbose=False) -> None:
         """
         Notes:
             - Even though we take in Question[], we ultimately remove the GuessQuestion, using them to eliminate choices
         """
-        self.questions: list[TraitQuestion] = questions if questions else []
-        self.answers: list[Answer] = answers if answers else []
+        self.questions: list[TraitQuestion] = []
+        self.answers: list[Answer] = []
         self.images: list[Image] = images
         self.verbose = verbose
         self.image_trait_answer_probabilities = self._compute_image_probabilities_from_confidence(self.images)
         self.image_probabilities: dict[str, float] = {image.name: 1/len(self.images) for image in self.images}
 
-        # Do some initial processing using info from questions and answers
-        for q, a in zip(questions, self.answers):
-            self.process_question_and_answer(q,a)
-    
     def print(self, *args, **xargs):
         if self.verbose:
             print(*args, **xargs)
@@ -134,9 +130,12 @@ class Solver:
         """
         if question.type == QuestionType.Guess:
             # When we have a guess question, we just delete the image from the the images array
+            old_length = len(self.images)
             image_name = question.image_name
             self.images = list(filter(lambda x: x.name != image_name, self.images))
+            assert old_length - 1 == len(self.images)
             del self.image_trait_answer_probabilities[image_name]
+            del self.image_probabilities[image_name]
         elif question.type == QuestionType.Trait:
             self.questions.append(question)
             self.answers.append(answer)
@@ -148,13 +147,21 @@ class Solver:
             p = self._get_p_image_given_questions_and_answers(image, self.questions, self.answers)
             self.image_probabilities[image.name] = p
 
-        self.print(f"\n[image_probabilities]: {self.image_probabilities}",end='\n\n')
+        # breakpoint()
+        self.print(f"\n[image_probabilities]: {[round(p, 2) for p in self.image_probabilities.values()]}",end='\n\n')
 
         if abs(sum(self.image_probabilities.values()) - 1) >= 0.01:
-            raise Exception(f"[process_question_and_answer] Leaking woojer sum {sum(self.image_probabilities.values())}. {self.image_probabilities.values()}")
+            raise Exception(f"[process_question_and_answer] Leaking woojer sum {sum(self.image_probabilities.values())}. {list(self.image_probabilities.values())}")
+
+    def _compute_entropy_of_list(self, li: list[float]):
+        entropy = 0
+        for p in li:
+            if p > 0:  # To avoid log(0) which is undefined
+                entropy -= p * math.log2(p)
+        return entropy
 
     def get_best_question(self, depth=1) -> TraitQuestion | GuessQuestion:
-        best_expected_entropy = 0
+        best_expected_entropy = 10 ** 10
         best_question = None
         for trait in Trait:
             question = TraitQuestion(trait)
@@ -168,10 +175,14 @@ class Solver:
                     p_for_answer = self.image_trait_answer_probabilities[image.name][trait][answer]
                     probability_for_answer += p_for_answer * image_p
 
-                if probability_for_answer != 0: # In case it's 0, then we gain no info so expected_entropy remains the same
-                    expected_entropy += -1 * probability_for_answer * math.log(probability_for_answer) / math.log(2)    
+                # Compute the entrpy of the image probs if this question is answered
+                future_questions, future_answers = self.questions + [question], self.answers + [answer]
+                future_probs = [self._get_p_image_given_questions_and_answers(image, future_questions, future_answers) for image in self.images]
+                future_entropy = self._compute_entropy_of_list(future_probs) # TODO: clarify that we aren't really computing expected entropy
+
+                expected_entropy += probability_for_answer * future_entropy # TODO: clarify that we aren't really computing expected entropy and more like an expected future entropy
             # See if best question yet
-            if expected_entropy > best_expected_entropy:
+            if expected_entropy < best_expected_entropy:
                 best_expected_entropy = expected_entropy
                 best_question = question
             self.print(f"Question: {question} as entropy {expected_entropy}")
@@ -180,12 +191,21 @@ class Solver:
 
         # Consider whether to ask a trait or guess question
         # Use use the heuristic that if less than 80% of the data is expected to be cleared, then, we'd use a question over a final guess
-        if best_expected_entropy > 0.32:
-            self.print(f"BEST QUESTION: {best_question} produced expected entropy {best_expected_entropy}")
-        else:
+        # if best_expected_entropy > 0.32:
+        #     self.print(f"BEST QUESTION: {best_question} produced expected entropy {best_expected_entropy}")
+        # else:
+        #     image_choice = random.choices(self.images, weights=[self.image_probabilities[img.name] for img in self.images], k=1)[0]
+        #     best_question = GuessQuestion(image_choice.name)
+        #     self.print(f"BEST QUESTION: {best_question}")
+
+        current_entropy = self._compute_entropy_of_list(self.image_probabilities.values())
+        self.print(f"Current entropy: {round(current_entropy, 2)}. Future entropy: {round(best_expected_entropy, 2)}")
+        if abs(current_entropy  - best_expected_entropy) < 0.1 or best_expected_entropy < 0.1:
             image_choice = random.choices(self.images, weights=[self.image_probabilities[img.name] for img in self.images], k=1)[0]
             best_question = GuessQuestion(image_choice.name)
             self.print(f"BEST QUESTION: {best_question}")
+        else:
+            self.print(f"BEST QUESTION: {best_question} produced expected entropy {best_expected_entropy}")
 
         return best_question    
 
