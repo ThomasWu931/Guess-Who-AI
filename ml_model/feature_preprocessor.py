@@ -22,7 +22,7 @@ from tensorflow.keras.models import Model
 import shutil
 
 class FeatureDataPartitioner:
-    def __init__(self, image_folder, label_csv_dir, feature, output_data_folder, max_split_size=5000 ) -> None:
+    def __init__(self, image_folder, label_csv_dir, feature, output_data_folder, max_split_size=15000 ) -> None:
         self.image_folder = image_folder
         self.label_csv_dir = label_csv_dir
         self.feature = feature
@@ -62,5 +62,5 @@ class FeatureDataPartitioner:
         self.upload_imgs(without_feature_train, self.image_folder, f"{self.output_data_folder}/Train/no_{self.feature}")
         self.upload_imgs(without_feature_val, self.image_folder, f"{self.output_data_folder}/Valid/no_{self.feature}")
 
-f = FeatureDataPartitioner("./raw_data/img_align_celeba/img_align_celeba", "./raw_data/list_attr_celeba.csv", "Black_Hair", "data/Black_Hair")
+f = FeatureDataPartitioner("./raw_data/img_align_celeba/img_align_celeba", "./raw_data/list_attr_celeba.csv", "Male", "data/Male")
 f.process_and_upload_data()

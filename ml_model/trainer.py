@@ -76,11 +76,11 @@ class Trainer:
         # Fit the model
         self.model.fit(
             x=train_generator, 
-            epochs=2,
+            epochs=20,
             validation_data=val_generator,
             callbacks=[checkpoint], 
-            steps_per_epoch=80,
-            validation_steps=5,
+            steps_per_epoch=150,
+            validation_steps=10,
         )
 
         # Display stats
@@ -139,8 +139,8 @@ tf.config.threading.set_intra_op_parallelism_threads(4)  # Controls parallel thr
 tf.config.threading.set_inter_op_parallelism_threads(4)  # Controls parallel threads between operations
 
 # ,Bald,Bangs,Black_Hair,Blond_Hair,Brown_Hair,Chubby,Gray_Hair,Male,Mouth_Slightly_Open,Pale_Skin,Smiling,Straight_Hair,Wavy_Hair,Wearing_Earrings,Wearing_Hat,Wearing_Necklace,Wearing_Necktie
-t = Trainer(image_folder="./data/Black_Hair", 
-            feature="Black_Hair",
+t = Trainer(image_folder="./data/Male", 
+            feature="Male",
             model_dir="./models"    
         )
 t.train_and_save_model()
