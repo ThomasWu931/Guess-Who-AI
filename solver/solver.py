@@ -147,7 +147,6 @@ class Solver:
             p = self._get_p_image_given_questions_and_answers(image, self.questions, self.answers)
             self.image_probabilities[image.name] = p
 
-        # breakpoint()
         self.print(f"\n[image_probabilities]: {[round(p, 2) for p in self.image_probabilities.values()]}",end='\n\n')
 
         if abs(sum(self.image_probabilities.values()) - 1) >= 0.01:
@@ -162,7 +161,9 @@ class Solver:
 
     def get_best_question(self, depth=1) -> TraitQuestion | GuessQuestion:
         best_expected_entropy = 10 ** 10
-        best_question = None
+        best_trait_question = None
+
+        # Consider getting the best trait question
         for trait in Trait:
             question = TraitQuestion(trait)
             expected_entropy = 0
@@ -184,92 +185,26 @@ class Solver:
             # See if best question yet
             if expected_entropy < best_expected_entropy:
                 best_expected_entropy = expected_entropy
-                best_question = question
+                best_trait_question = question
             self.print(f"Question: {question} as entropy {expected_entropy}")
-
-        if not best_question: raise Exception("[solve] Empty sussy q. Prob a woojwasta responsible.")
+        if not best_trait_question: raise Exception("[solve] Empty sussy t q. Prob a woojwasta responsible.")
+        self.print(f"Current entropy: {round(current_entropy, 2)}. Future entropy: {round(best_expected_entropy, 2)}. Best trait question: {repr(best_trait_question)}")
 
         """
-            Consider whether to ask a trait or guess question
-            Use use any of the following heuristic to consider a "termination" event:    
-                #1: The expected entropy after asking the question leads to less than a 2 person decrease
+        Consider whether to ask a trait or guess question
+        We consider two conditions
+            #1: Has this question been asked in the past? 
+            #2: Do we decrease entropy enough by asking the question? 
         """
-        current_entropy = self._compute_entropy_of_list(self.image_probabilities.values())
-        expected_reduction_amount = 0.5**expected_entropy * len(self.images)
-        current_reduction_amount = 0.5**current_entropy * len(self.images)
 
-        self.print(f"Current entropy: {round(current_entropy, 2)}. Future entropy: {round(best_expected_entropy, 2)}")
-        if abs(expected_reduction_amount - current_reduction_amount) < 2:
+
+        best_question = None
+        if best_trait_question in self.questions or abs(expected_entropy - current_entropy) < 0.2 or current_entropy < 0.1:
             image_choice = random.choices(self.images, weights=[self.image_probabilities[img.name] for img in self.images], k=1)[0]
             best_question = GuessQuestion(image_choice.name)
-            self.print(f"BEST QUESTION: {best_question}")
         else:
-            self.print(f"BEST QUESTION: {best_question} produced expected entropy {best_expected_entropy}")
+            best_question = best_trait_question
+        self.print(f"BEST QUESTION: {best_question}")
 
+        current_entropy = self._compute_entropy_of_list(self.image_probabilities.values())
         return best_question  
-
-    def _entropy_to_prob(self):
-        # Converts given entropy into a probability for the 
-
-
-
-# class Solver:
-#     def compute_question_success_probability(self, images: list[Image], question: Question) -> tuple[float, list[Image], list[Image]]:
-#         """Returns the probability (between 0 and 1) that the answer to the question True along with the associated images
-#         """
-#         if not images:
-#             return 0, [], []
-
-#         i = 0
-#         yes_images = []
-#         no_images = []
-#         for image in images:
-#             if image.traits.get(question.trait) == True:
-#                 i += 1
-#                 yes_images.append(image)
-#             else:
-#                 no_images.append(image)
-#         return i/len(images), yes_images, no_images
-        
-#     def get_best_question(self, images: list[Image], depth: int) -> tuple[Question, float]:
-#         best_question = None
-#         highest_expected_entropy = 0
-#         for trait in Trait:
-#             question = Question(trait)
-#             p, yes_imgs, no_imgs = self.compute_question_success_probability(images, question)
-#             expected_entropy = p * -1 * math.log(p)/math.log(2) + (1 - p) * -1 * math.log(1 - p) / math.log(2) if p not in [0,1] else 0 # expected bits of information from the question (With no lookahead)
-#             if depth != 0:
-#                 _, expected_entropy_yes = self.get_best_question(yes_imgs, depth-1)
-#                 _, expected_entropy_no = self.get_best_question(no_imgs, depth-1)
-#                 expected_entropy = p * expected_entropy_yes + (1 - p) * expected_entropy_no + expected_entropy
-
-#             if expected_entropy >= highest_expected_entropy:
-#                 highest_expected_entropy = expected_entropy
-#                 best_question = question
-#         return best_question, highest_expected_entropy
-    
-
-    # def get_image_probabilities(self, questions: list[Question], answers: list[Answer]):
-    #     probabilities = [-1 for i in range(len(self.images))]
-
-    #     numerator = 1
-    #     for i in range(len(probabilities)):
-    #         image = self.images[i]
-    #         numerator = 1
-    #         denominator = 1
-    #         p_trait_given_answer = 1/len(self.images)
-    #         p_trait_given_not_answer = 1 - 1/len(self.images)
-    #         for q, a in zip(questions, answers):
-    #             trait = q.trait
-    #             p_trait_given_answer *= max(0.005, self.compute_prob_trait_given_image(image.traits[trait], a.value)) # Probability that a character's trait is true given an answer
-    #             p_trait_given_not_answer *= max(0.005,sum([self.compute_prob_trait_given_image(other_img.traits[trait], a.value) if image != other_img else 0 for other_img in self.images])/(len(self.images) - 1))
-
-    #         probabilities[i] = numerator/(numerator+denominator)
-
-    #     # Normalize the probabilities
-    #     if abs(sum(probabilities) - 1) >= 0.01:
-    #         raise Exception("ERORR")
-    #     probabilities = [p for p in probabilities]
-
-    #     return probabilities
-    

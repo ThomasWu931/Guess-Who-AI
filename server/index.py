@@ -21,11 +21,13 @@ collection = db[collection_name]
 app = Flask(__name__)
 CORS(app)  # Allow all origins (for development purposes) (#TODO: EDIT THIS WHEN DEPLOYING TO BE MORE RESTRICTIVE)
 
-@app.route('/images', methods=['GET'])
+@app.route('/images', methods=['POST'])
 def get_images():
     # Sample 25 images from the db
-    sample_size = 10
+    sample_size = 25
+    print("[get_images] Getting the images")
     sample_images = list(collection.aggregate([{"$sample": {"size": sample_size}}]))
+    print("[get_images] Got images. Now processing")
     sample_images = [
         {
             k: str(v) if k == "_id" else v for k,v in image.items()
@@ -58,6 +60,7 @@ def get_question():
         s.process_question_and_answer(q,a)
 
     question = s.get_best_question()
+    print("[get_question] Getting question")
     if question.type == QuestionType.Guess:
         return {
             "type": question.type.value,

@@ -10,6 +10,12 @@ class Question(ABC):
     def __init__(self, type: QuestionType) -> None:
         self.type = type
 
+    def __eq__(self, other) -> bool:
+        """
+        Note: DANGEROUS. BE CAREFUL USING THIS
+        """
+        return repr(other) == self.__repr__()
+
     def __repr__(self) -> str:
         raise NotImplementedError
 

@@ -10,8 +10,6 @@ class MongoSolver(Solver):
     def _get_images(self, image_ids) -> list[Image]:
         image_ids = [ObjectId(i) for i in image_ids]
         raw_images = list(self.collection.find({"_id": {"$in": image_ids}}))
-        # breakpoint()
-        # raw_images = list(self.collection.aggregate([{"$sample": {"size": 20}}]))
         images = []
         for image in raw_images:
             traits = {Trait(k): v["conf"] for k,v in image["traits"].items()}
